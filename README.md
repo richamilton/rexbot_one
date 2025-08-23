@@ -1,7 +1,7 @@
 # rexbot_one
 ## Background
 ### Robot State Publisher
-![Robot State Publisher](src/rexbot_one/docs/images/robot_state_publisher.png)
+![Robot State Publisher](docs/images/robot_state_publisher.png)
 
 ## Getting Started
 
