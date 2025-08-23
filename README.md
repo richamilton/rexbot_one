@@ -1,4 +1,7 @@
 # rexbot_one
+## Background
+### Robot State Publisher
+![alt text](src/rexbot_one/docs/images/robot_state_publisher.png)
 
 ## Getting Started
 
@@ -22,3 +25,6 @@ rviz2
 ```bash
 ros2 run joint_state_publisher_gui joint_state_publisher_gui
 ```
+
+# References
+- Design robot
