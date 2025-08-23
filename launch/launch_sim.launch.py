@@ -38,33 +38,33 @@ def generate_launch_description():
                                    '-entity', 'my_bot'],
                         output='screen')
 
-    # # Launch the elevator simulation models
-    # spawn_elevator_simulation = IncludeLaunchDescription(
-    #             PythonLaunchDescriptionSource([os.path.join(
-    #                 get_package_share_directory('elevator_simulation'),'launch','launch.py'
-    #             )])
-    # )
+    # Launch the elevator simulation models
+    spawn_elevator_simulation = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory('elevator_simulation'),'launch','launch.py'
+                )])
+    )
 
     # Run the spawner node for starting diff drive controller
-    # diff_drive_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["diff_cont"],
-    # )
+    diff_drive_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["diff_cont"],
+    )
 
-    # # Run the spawner node for starting joint state broadcaster
-    # joint_broad_spawner = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=["joint_broad"],
-    # )
+    # Run the spawner node for starting joint state broadcaster
+    joint_broad_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_broad"],
+    )
 
     # Launch them all!
     return LaunchDescription([
         rsp,
         gazebo,
         spawn_entity,
-        # spawn_elevator_simulation,
-        # diff_drive_spawner,
-        # joint_broad_spawner
+        spawn_elevator_simulation,
+        diff_drive_spawner,
+        joint_broad_spawner
     ])
