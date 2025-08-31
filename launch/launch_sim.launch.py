@@ -59,6 +59,13 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
+    # Launch joystick teleop
+    joystick = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory(package_name),'launch','joystick.launch.py'
+                )])
+    )
+
     # Launch them all!
     return LaunchDescription([
         rsp,
@@ -66,5 +73,6 @@ def generate_launch_description():
         spawn_entity,
         spawn_elevator_simulation,
         diff_drive_spawner,
-        joint_broad_spawner
+        joint_broad_spawner,
+        joystick
     ])
