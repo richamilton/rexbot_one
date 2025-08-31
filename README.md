@@ -38,7 +38,7 @@ Install the following packages:
 sudo apt install joystick jstest-gtk evtest teleop_twist_joy
 ```
 
-Check that joystick works with linux (Opation)
+Check that joystick works with linux (Option)
 - Select a event number and any button presses should cause some new text to come through on the screen.
 
 ```bash
