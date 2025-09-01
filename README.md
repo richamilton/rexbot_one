@@ -20,7 +20,7 @@ Simultaneous Localization and Mapping: Builds a map while estimating the robotâ€
 
 #### Grid SLAM vs Feature SLAM
 - `Feature SLAM`: Uses identifiable landmarks (eg. red roof, fence).
-- `Grid SLAM`: Divides the world int cells, cells can be occupied , unocupied or unknown (what we use)
+- `Grid SLAM`: Divides the world into cells, cells can be occupied , unocupied or unknown (what we use)
 
 #### Online vs Offline
 - `Online`: Working on a live data stream
@@ -32,8 +32,8 @@ Simultaneous Localization and Mapping: Builds a map while estimating the robotâ€
 
 #### Coordinate Frames
 - `base_link`: Frame attached to the robot.
-- `odom`: Represents the owrld orgin (based on wheel odometry) -- can have drift.
-- `map`: Frame tied to an accurate global map -- corrects odemetry drift -- but jumpy.
+- `odom`: Represents the world origin (based on wheel odometry) -- can have drift.
+- `map`: Frame tied to an accurate global map -- corrects odometry drift -- but jumpy.
 - `base_footprint`: 2D shadow of the robot's position on the ground, used for 2D SLAM
 
 ## Dependencies
