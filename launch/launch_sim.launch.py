@@ -105,7 +105,7 @@ def generate_launch_description():
                 get_package_share_directory(package_name), 'launch', 'localization_launch.py'
             )]),
             launch_arguments={
-                'map': "ground_floor_map_save.yaml",
+                'map': map_file,
                 'use_sim_time': 'true',
                 'params_file': os.path.join(get_package_share_directory(package_name), 'config', 'nav2_params.yaml')
             }.items()
