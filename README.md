@@ -70,6 +70,12 @@ evtest
 Install the following packages:
 - `slam_toolbox`
 
+### Navigation
+Install the following packages:
+- `ros-humble-navigation2`
+- `ros-humble-nav2-bringup`
+- `ros-humble-twist-mux`
+
 ## Getting Started
 
 ### 1. Build the Package

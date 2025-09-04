@@ -22,7 +22,7 @@ def generate_launch_description():
             # NOTE:
             # - ros2 control listens for velocity commands on the diff_cont/cmd_vel_unstamped topic
             # - remap the cmd_vel topic to the diff_cont/cmd_vel_unstamped topic
-            remappings=[('/cmd_vel', '/diff_cont/cmd_vel_unstamped')]
+            remappings=[('/cmd_vel', '/cmd_vel_joy')]
         )
 
     return LaunchDescription([
