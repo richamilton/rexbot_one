@@ -97,7 +97,7 @@ def generate_launch_description():
 
     declare_container_name_cmd = DeclareLaunchArgument(
         'container_name', default_value='nav2_container',
-        description='the name of conatiner that nodes will load in if use composition')
+        description='the name of container that nodes will load in if use composition')
 
     declare_use_respawn_cmd = DeclareLaunchArgument(
         'use_respawn', default_value='False',
@@ -185,7 +185,7 @@ def generate_launch_description():
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
 
-    # Add the actions to launch all of the localiztion nodes
+    # Add the actions to launch all of the localization nodes
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)
 
