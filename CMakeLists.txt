@@ -7,6 +7,11 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(nav2_msgs REQUIRED)
 
 # Install directories
 install(
@@ -16,6 +21,8 @@ install(
 
 install(PROGRAMS
   scripts/set_initial_pose_once.py
+  scripts/delivery_coordinator.py
+  # scripts/map_manager.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -30,5 +37,13 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
+# Generate interfaces
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/DeliverToUnit.srv"
+  "srv/LoadingComplete.srv"
+  DEPENDENCIES std_msgs geometry_msgs nav_msgs
+)
 
 ament_package()

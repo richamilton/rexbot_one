@@ -1,0 +1,33 @@
+# DeliverToUnit.srv
+# Main service for initiating delivery to a specific unit
+
+# REQUEST
+# Unit identifier (e.g., "0411" for floor 4, unit 11)
+string unit_id
+
+# Optional delivery notes/instructions
+string delivery_notes
+
+# Priority level (1=normal, 2=urgent, 3=emergency)
+int32 priority
+
+---
+
+# RESPONSE
+# Success flag
+bool success
+
+# Error message if delivery cannot be initiated
+string error_message
+
+# Parsed floor number
+int32 target_floor
+
+# Parsed unit number  
+int32 target_unit
+
+# Estimated delivery time in seconds
+float32 estimated_duration
+
+# Unique delivery ID for tracking
+string delivery_id

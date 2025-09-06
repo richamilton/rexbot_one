@@ -110,7 +110,6 @@ def generate_launch_description():
                 'params_file': os.path.join(get_package_share_directory(package_name), 'config', 'nav2_params.yaml')
             }.items()
         ),
-       
         TimerAction(
             period=3.0,  # Wait 3 seconds for AMCL to be ready
             actions=[
@@ -135,5 +134,18 @@ def generate_launch_description():
                     launch_arguments={'use_sim_time': 'true', 'subscribe_transient_local': 'true'}.items()
                 )
             ]
-        ) 
+        ),
+
+        # Run delivery coordinator script
+        TimerAction(
+            period=5.0,  # Wait 5 seconds for Nav to be ready
+            actions=[
+                Node(
+                    package='rexbot_one',
+                    executable='delivery_coordinator.py',
+                    name='delivery_coordinator',
+                    output='screen'
+                )
+            ]
+        )
     ])

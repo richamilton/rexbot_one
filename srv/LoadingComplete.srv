@@ -1,0 +1,21 @@
+# LoadingComplete.srv
+# Service to signal that loading is complete and robot can proceed
+
+# REQUEST
+# Delivery ID to confirm loading completion
+string delivery_id
+
+# Confirmation from operator/system
+bool loading_confirmed
+
+# Optional notes about loading
+string loading_notes
+
+---
+
+# RESPONSE  
+# Acknowledgment that robot can proceed
+bool proceed_to_delivery
+
+# Any additional instructions
+string instructions

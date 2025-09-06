@@ -120,6 +120,20 @@ ros2 launch slam_toolbox online_async_launch.py params_file:=./src/rexbot_one/co
 ### 4b. Adaptive Monte Carlo Localisation (AMCL)
 - TBD
 
+### Multi Floor Navigation
+#### Getting Location Coordinates
+- Subscribe to `/clicked_point`
+```bash
+ros2 topic echo /clicked_point
+```
+
+- Click `Publish Point`
+
+**Note:** Orientation:
+- 0.0 -> Facing East
+- 0.785 -> Facing North
+- 1.57 -> Facing West
+
 ## References
 
 - Design robot

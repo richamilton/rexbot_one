@@ -1,0 +1,220 @@
+# Location Coordinates Configuration
+# Predefined (x, y, yaw) coordinates for all important locations
+
+# Ground Floor (Floor 0) Locations
+ground_floor:
+  # Loading and delivery preparation area
+  loading-zone:
+    x: -6.1
+    y: -5.2
+    yaw: 1.57  # facing west
+    description: "Package loading area near reception"
+    
+  # Main lobby elevator access point
+  lobby-elevator:
+    x: 2.8
+    y: 2.3
+    yaw: 0.785  # facing north elevator doors
+    description: "Position in front of lobby elevators"
+    
+  # Home/charging station
+  home-base:
+    x: 7.2
+    y: -5.3
+    yaw: 1.57
+    description: "Robot charging and waiting area"
+    
+  # Additional ground floor locations
+  reception-desk:
+    x: -2.0
+    y: 2.0
+    yaw: 1.57
+    description: "Reception desk area"
+    
+  lobby-center:
+    x: 0.0
+    y: 0.0
+    yaw: 0.0
+    description: "Center of main lobby"
+
+# Residential Floor Locations (Floors 1-4)
+# These coordinates are relative to residential floor maps
+residential_floors:
+  # Elevator exit point on residential floors
+  elevator-exit:
+    x: 8.0
+    y: 0.0
+    yaw: 3.14  # facing away from elevators into hallway
+    description: "Standard elevator exit position on residential floors"
+    
+  # Main hallway waypoint
+  main-hallway:
+    x: 15.0
+    y: 0.0
+    yaw: 0.0
+    description: "Central hallway position for navigation"
+    
+  # Unit door positions by quadrant
+  # Format: unit_XX where XX is unit number
+  units:
+    # North wing units (positive Y)
+    unit_01:
+      x: 20.0
+      y: 5.0
+      yaw: 3.14  # facing door
+      description: "Unit 01 door"
+      
+    unit_02:
+      x: 20.0
+      y: 7.5
+      yaw: 3.14
+      description: "Unit 02 door"
+      
+    unit_03:
+      x: 20.0
+      y: 10.0
+      yaw: 3.14
+      description: "Unit 03 door"
+      
+    # South wing units (negative Y)  
+    unit_04:
+      x: 20.0
+      y: -5.0
+      yaw: 3.14
+      description: "Unit 04 door"
+      
+    unit_05:
+      x: 20.0
+      y: -7.5
+      yaw: 3.14
+      description: "Unit 05 door"
+      
+    unit_06:
+      x: 20.0
+      y: -10.0
+      yaw: 3.14
+      description: "Unit 06 door"
+      
+    # East wing units
+    unit_07:
+      x: 25.0
+      y: 2.5
+      yaw: 1.57
+      description: "Unit 07 door"
+      
+    unit_08:
+      x: 25.0
+      y: -2.5
+      yaw: 1.57  
+      description: "Unit 08 door"
+      
+    # West wing units
+    unit_09:
+      x: 10.0
+      y: 8.0
+      yaw: -1.57
+      description: "Unit 09 door"
+      
+    unit_10:
+      x: 10.0
+      y: -8.0
+      yaw: -1.57
+      description: "Unit 10 door"
+      
+    # Extended units for 4-floor building (units 11-20+)
+    unit_11:
+      x: 22.5
+      y: 5.0
+      yaw: 3.14
+      description: "Unit 11 door"
+      
+    unit_12:
+      x: 22.5
+      y: -5.0  
+      yaw: 3.14
+      description: "Unit 12 door"
+      
+    unit_13:
+      x: 17.5
+      y: 8.0
+      yaw: -1.57
+      description: "Unit 13 door"
+      
+    unit_14:
+      x: 17.5
+      y: -8.0
+      yaw: -1.57
+      description: "Unit 14 door"
+      
+    unit_15:
+      x: 27.0
+      y: 0.0
+      yaw: 1.57
+      description: "Unit 15 door"
+      
+    # Sample units 16-25 for higher floors
+    unit_16:
+      x: 12.5
+      y: 6.0
+      yaw: -1.57
+      
+    unit_17:
+      x: 12.5
+      y: -6.0
+      yaw: -1.57
+      
+    unit_18:
+      x: 24.0
+      y: 8.0
+      yaw: -1.57
+      
+    unit_19:
+      x: 24.0
+      y: -8.0  
+      yaw: -1.57
+      
+    unit_20:
+      x: 30.0
+      y: 2.0
+      yaw: 1.57
+      
+    unit_21:
+      x: 30.0
+      y: -2.0
+      yaw: 1.57
+      
+    unit_22:
+      x: 20.0
+      y: 12.0
+      yaw: 3.14
+      description: "Unit 22 door (user's example)"
+      
+    # Add more units as needed...
+
+# Map Information
+maps:
+  ground_floor:
+    map_file: "ground_floor.yaml"
+    frame_id: "ground_floor_map"
+    description: "Lobby, reception, elevators, loading area"
+    
+  residential_floor:
+    map_file: "residential_floor.yaml" 
+    frame_id: "residential_floor_map"
+    description: "Standard residential floor layout (floors 1-4)"
+
+# Navigation Parameters  
+navigation:
+  goal_tolerance:
+    xy: 0.2      # meters
+    yaw: 0.1     # radians
+    
+  approach_distance: 1.0  # meters to stop before unit door
+  
+  elevator_wait_position:
+    offset_from_door: 1.5  # meters back from elevator door
+    
+  timeouts:
+    navigation_goal: 60.0   # seconds
+    elevator_wait: 300.0    # 5 minutes max elevator wait
+    loading_wait: 600.0     # 10 minutes max loading wait
