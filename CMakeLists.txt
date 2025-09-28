@@ -13,6 +13,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 
+
 # Install directories
 install(
   DIRECTORY config description launch
@@ -22,7 +23,8 @@ install(
 install(PROGRAMS
   scripts/set_initial_pose_once.py
   scripts/delivery_coordinator.py
-  # scripts/map_manager.py
+  scripts/map_manager.py
+  scripts/nav_manager.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

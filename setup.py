@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'delivery_coordinator = rexbot_one.delivery_coordinator:main',
             'map_manager = rexbot_one.map_manager:main',
+            'nav_manager = rexbot_one.nav_manager:main'
         ],
     },
 )
