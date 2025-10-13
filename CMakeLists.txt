@@ -45,6 +45,7 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/DeliverToUnit.srv"
   "srv/LoadingComplete.srv"
+  "srv/NavigateToGoal.srv"
   DEPENDENCIES std_msgs geometry_msgs nav_msgs
 )
 

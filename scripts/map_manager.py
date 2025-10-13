@@ -79,7 +79,7 @@ class MapManager(Node):
         #     self.get_logger().info(f"Already using map: {requested_map}")
         #     return True
         
-        if requested_map not in ['ground_floor', 'residential_floor',]:
+        if requested_map not in self.map_configs.keys():
             self.get_logger().info(f"Unknown map: {requested_map}")
             return False
 
@@ -203,14 +203,14 @@ class MapManager(Node):
 
 def setup_map(map_name: str, initial_pose: Dict[str, float]):
     """Convenience function to call the clear costmap service once and return the response."""
-    rclpy.init()
     client = MapManager()
     response = client.setup_map(map_name, initial_pose)
     client.get_logger().info(f'Result of setup map: {response}')
     client.destroy_node()
-    rclpy.shutdown()
     return response
 
 
 if __name__ == '__main__':
+    rclpy.init()
     setup_map("ground_floor", {'x': 0.0, 'y': 0.0, 'yaw': 0.0})
+    rclpy.shutdown()

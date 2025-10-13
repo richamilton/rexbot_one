@@ -68,15 +68,18 @@ class NavManager(Node):
             self.get_logger().warn(f"Goal failed with status: {result}")
             return False
 
-def navigate_to_goal(x: float, y: float, yaw: float) -> bool:
-    rclpy.init()
+def navigate_to_goal(goal: dict) -> dict:
     node = NavManager()
     try:
+        x = goal.get("x")
+        y = goal.get("y")
+        yaw = goal.get("yaw")
         success = node.handle_goal_request(x, y, yaw)
-        return success
+        return {"success": success}
     finally:
         node.destroy_node()
-        rclpy.shutdown()
 
 if __name__ == "__main__":
+    rclpy.init()
     navigate_to_goal(-1.0, 0.0, 0.0)
+    rclpy.shutdown()

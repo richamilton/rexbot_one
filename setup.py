@@ -1,5 +1,6 @@
 import os
 from glob import glob
+from turtle import setup
 
 package_name = 'rexbot_one'
 
@@ -27,7 +28,8 @@ setup(
         'console_scripts': [
             'delivery_coordinator = rexbot_one.delivery_coordinator:main',
             'map_manager = rexbot_one.map_manager:main',
-            'nav_manager = rexbot_one.nav_manager:main'
+            'nav_manager = rexbot_one.nav_manager:main',
+            'set_initial_pose_once = rexbot_one.set_initial_pose_once:main'
         ],
     },
 )

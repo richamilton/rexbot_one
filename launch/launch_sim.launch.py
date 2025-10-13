@@ -136,16 +136,16 @@ def generate_launch_description():
             ]
         ),
 
-        # Run delivery coordinator script
-        TimerAction(
-            period=5.0,  # Wait 5 seconds for Nav to be ready
-            actions=[
-                Node(
-                    package='rexbot_one',
-                    executable='delivery_coordinator.py',
-                    name='delivery_coordinator',
-                    output='screen'
-                )
-            ]
-        )
+        # # Run delivery coordinator script
+        # TimerAction(
+        #     period=5.0,  # Wait 5 seconds for Nav to be ready
+        #     actions=[
+        #         Node(
+        #             package='rexbot_one',
+        #             executable='delivery_coordinator.py',
+        #             name='delivery_coordinator',
+        #             output='screen'
+        #         )
+        #     ]
+        # )
     ])
