@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 import os
 import sys
-import threading
+import time
 import yaml
 import re
 import uuid
 from enum import Enum
-from typing import Tuple, Optional, Dict
+from typing import Dict, Tuple, Optional
 import signal
+import threading
 
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.executors import MultiThreadedExecutor
 from nav2_msgs.srv import LoadMap, ClearEntireCostmap
 from nav2_msgs.action import NavigateToPose
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from std_msgs.msg import Int32, Bool
+from geometry_msgs.msg import PoseStamped
 from ament_index_python.packages import get_package_share_directory
+from dataclasses import dataclass
 
 from rexbot_one.srv import DeliverToUnit
 from example_interfaces.srv import AddTwoInts
@@ -55,6 +60,13 @@ class SingleElevatorRequestDirection(Enum):
     UP = 1
     DOWN = -1
 
+@dataclass
+class ElevatorStatus:
+    """Tracks the status of a single elevator"""
+    elevator_id: int
+    current_floor: int = 0
+    doors_open: bool = True
+
 class DeliveryCoordinator(Node):
     def __init__(self):
         super().__init__('delivery_coordinator')
@@ -70,17 +82,26 @@ class DeliveryCoordinator(Node):
                 'description': 'Standard residential floor layout (floors 1-4)'
             }
         }
-
+        self.num_elevators = 4 # TODO: Move to a configuration file
         self.state = DeliveryState.IDLE
         self.future = None
 
         # Initialize delivery parameters
+        self.current_floor = 0 # Ground floor
         self.target_floor = None
         self.target_unit = None
+        self.requested_elevator_id = None
 
         # Load location coordinates
         self.locations = {}
         self._load_location_config()
+
+        # Initialize elevator status tracking
+        self.lock = threading.Lock()
+        self.elevators: Dict[int, ElevatorStatus] = {}
+        for i in range(1, self.num_elevators + 1):
+            self.elevators[i] = ElevatorStatus(elevator_id=i)
+        
 
         # Service clients
         self.initial_pose_pub = self.create_publisher(
@@ -113,6 +134,25 @@ class DeliveryCoordinator(Node):
         if not self.request_elevator_client.wait_for_service(timeout_sec=5.0):
             self.get_logger().error('request_elevator service not available, initialization failed.')
             raise RuntimeError('request_elevator service not available')
+        
+        self.floor_subscribers = {}
+        self.door_subscribers = {}
+        for elevator_id in range(1, self.num_elevators + 1):
+            # Subscribe to current floor
+            self.floor_subscribers[elevator_id] = self.create_subscription(
+                Int32,
+                f'/elevator_{elevator_id}/current_floor',
+                lambda msg, eid=elevator_id: self.floor_callback(msg, eid),
+                10
+            )
+            
+            # Subscribe to door state
+            self.door_subscribers[elevator_id] = self.create_subscription(
+                Bool,
+                f'/elevator_{elevator_id}/door_state',
+                lambda msg, eid=elevator_id: self.door_callback(msg, eid),
+                10
+            )
 
         # Service servers
         self.deliver_service = self.create_service(
@@ -158,14 +198,12 @@ class DeliveryCoordinator(Node):
             self.get_logger().info("Requesting elevator")
             self.handle_requesting_elevator()
         
-        # elif self.state == DeliveryState.WAITING_FOR_ELEVATOR:
-        #     self.get_logger().info("Waiting for elevator")
-        #     # Call elevator and wait for it to arrive
-        #     # On arrival, transition to ENTERING_ELEVATOR state
-        #     self.state = DeliveryState.ENTERING_ELEVATOR
+        elif self.state == DeliveryState.WAITING_FOR_ELEVATOR:
+            self.get_logger().info("Waiting for elevator")
+            threading.Thread(target=lambda: self.handle_waiting_for_elevator(self.current_floor), daemon=True).start()
         
-        # elif self.state == DeliveryState.ENTERING_ELEVATOR:
-        #     self.get_logger().info("Entering elevator")
+        elif self.state == DeliveryState.ENTERING_ELEVATOR:
+            self.get_logger().info("Entering elevator")
         #     # Navigate into the elevator
         #     # On success, transition to RIDING_ELEVATOR state
         #     self.state = DeliveryState.RIDING_ELEVATOR
@@ -257,7 +295,7 @@ class DeliveryCoordinator(Node):
     
     def handle_requesting_elevator(self):
         request = AddTwoInts.Request()
-        request.a = 1
+        request.a = self.current_floor
         request.b = SingleElevatorRequestDirection.UP.value
 
         future = self.request_elevator_client.call_async(request)
@@ -273,21 +311,34 @@ class DeliveryCoordinator(Node):
             self.get_logger().warn(f"Elevator request failed with response: {result}")
             self.state = DeliveryState.ERROR_STATE
 
-        
-
-    
-    # def handle_navigating_to_loading_callback(self, future):
-    #     result = future.result()
-    #     if result.status == ActionResult.STATUS_SUCCEEDED.value:
-    #         self.get_logger().info("Goal succeeded!")
-    #         self.state = DeliveryState.WAITING_FOR_LOADING
-    #     else:
-    #         self.get_logger().warn(f"Goal failed with status: {result}")
-    #         self.state = DeliveryState.ERROR_STATE
-
-    
+    def handle_waiting_for_elevator(self, target_floor):
+        if self.state == DeliveryState.WAITING_FOR_ELEVATOR:
+            while self.elevators[self.requested_elevator_id].current_floor != target_floor or not self.elevators[self.requested_elevator_id].doors_open:
+                self.get_logger().info(f"Waiting for elevator {self.requested_elevator_id} to arrive at floor {target_floor} with doors open...")
+                time.sleep(1.0)
+            
+            self.get_logger().info(f"Elevator {self.requested_elevator_id} has arrived with doors open.")
+            self.state = DeliveryState.ENTERING_ELEVATOR
+            
+        else:
+            self.get_logger().error(f"Delivery state is not {self.state}, and is expected to be {DeliveryState.WAITING_FOR_ELEVATOR}.")
+            self.state = DeliveryState.ERROR_STATE
 
     # ------------------ Utility functions ------------------
+    def floor_callback(self, msg: Int32, elevator_id: int):
+        """Update elevator floor information"""
+        with self.lock:
+            if elevator_id in self.elevators:
+                self.elevators[elevator_id].current_floor = msg.data
+                # if elevator_id == self.requested_elevator_id:
+                #     self.get_logger().info(f"Elevator {elevator_id} is now at floor {msg.data}")
+    
+    def door_callback(self, msg: Bool, elevator_id: int):
+        """Update elevator door state"""
+        with self.lock:
+            if elevator_id in self.elevators:
+                self.elevators[elevator_id].doors_open = msg.data
+
     # def send_navigate_to_goal_request(self, goal: Dict[str, float]):
     #     # Create a goal pose
     #     goal_pose = PoseStamped()
@@ -398,13 +449,16 @@ def main(args=None):
     coordinator = None
     rclpy.init(args=args)
 
+    coordinator = DeliveryCoordinator()
+    executor = MultiThreadedExecutor()
+    executor.add_node(coordinator)
+
     try:
-        coordinator = DeliveryCoordinator()
+        executor.spin()
+
         coordinator.get_logger().info("Delivery coordinator ready for service calls")
         coordinator.get_logger().info("Example usage:")
         coordinator.get_logger().info("  ros2 service call /deliver_to_unit rexbot_one/DeliverToUnit \"{unit_id: '0411'}\"")
-        
-        rclpy.spin(coordinator)
         
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt received. Shutting down...")
@@ -414,6 +468,7 @@ def main(args=None):
         if coordinator is not None:
             coordinator.destroy_node()
         if rclpy.ok():
+            executor.shutdown()
             rclpy.shutdown()
 
 
