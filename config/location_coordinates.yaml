@@ -13,7 +13,7 @@ ground_floor:
   # Main lobby elevator access point
   lobby-elevator:
     x: 2.8
-    y: 2.3
+    y: 2.6
     yaw: 0.785  # facing north elevator doors
     description: "Position in front of lobby elevators"
     
@@ -36,10 +36,53 @@ ground_floor:
     y: 0.0
     yaw: 0.0
     description: "Center of main lobby"
+  
+  elevators:
+    elevator_1:
+      x: 1.56544
+      y: 4.27278
+      yaw: -1.5708  # facing elevator doors (south)
+      description: "Elevator 1 stage position"
+    elevator_2:
+      x: 3.98915
+      y: 4.16426
+      yaw: -1.5708  # facing elevator doors (south)
+      description: "Elevator 2 stage position"
+    elevator_3:
+      x: 1.59735
+      y: 0.244065
+      yaw: 1.5708  # facing elevator doors (north)
+      description: "Elevator 3 stage position"
+    elevator_4:
+      x: 4.00332
+      y: 0.141683  
+      yaw: 1.5708  # facing elevator doors (north)
+      description: "Elevator 4 stage position"
 
 # Residential Floor Locations (Floors 1-4)
 # These coordinates are relative to residential floor maps
 residential_floors:
+  elevators:
+    elevator_1:
+      x: 3.49873
+      y: 4.35587
+      yaw: -1.83705 # facing elevator doors (south)
+      description: "Elevator 1 stage position"
+    elevator_2:
+      x: 5.88031
+      y: 3.65679
+      yaw: -1.83379  # facing elevator doors (south)
+      description: "Elevator 2 stage position"
+    elevator_3:
+      x: 2.38227
+      y: 0.36351
+      yaw: 1.3078  # facing elevator doors (north)
+      description: "Elevator 3 stage position"
+    elevator_4:
+      x: 4.87356
+      y: -0.148398
+      yaw: 1.344  # facing elevator doors (north)
+      description: "Elevator 4 stage position"
   # Elevator exit point on residential floors
   elevator-exit:
     x: 8.0
@@ -59,39 +102,39 @@ residential_floors:
   units:
     # North wing units (positive Y)
     unit_01:
-      x: 20.0
-      y: 5.0
-      yaw: 3.14  # facing door
+      x: 0.823631
+      y: 7.0548
+      yaw: 1.3102  # facing door
       description: "Unit 01 door"
       
     unit_02:
-      x: 20.0
-      y: 7.5
-      yaw: 3.14
+      x: -0.23456
+      y: 3.28499
+      yaw: 2.78282
       description: "Unit 02 door"
       
     unit_03:
-      x: 20.0
-      y: 10.0
-      yaw: 3.14
+      x: -3.10049
+      y: -0.110035
+      yaw: 32.85554
       description: "Unit 03 door"
       
     # South wing units (negative Y)  
     unit_04:
-      x: 20.0
-      y: -5.0
+      x: 9.50
+      y: 6.01
       yaw: 3.14
       description: "Unit 04 door"
       
     unit_05:
-      x: 20.0
-      y: -7.5
+      x: 9.17
+      y: 1.60
       yaw: 3.14
       description: "Unit 05 door"
       
     unit_06:
-      x: 20.0
-      y: -10.0
+      x: 7.11
+      y: -2.66
       yaw: 3.14
       description: "Unit 06 door"
       

@@ -44,8 +44,9 @@ class DeliveryState(Enum):
     REQUESTING_ELEVATOR = "requesting_elevator"
     WAITING_FOR_ELEVATOR = "waiting_for_elevator"
     ENTERING_ELEVATOR = "entering_elevator"
-    RIDING_ELEVATOR = "riding_elevator"
-    EXITING_ELEVATOR = "exiting_elevator"
+    REQUESTING_FLOOR_STOP = "requesting_floor_stop"
+    WAITING_FLOOR_STOP = "waiting_floor_stop"
+    # EXITING_ELEVATOR = "exiting_elevator"
     NAVIGATING_TO_UNIT = "navigating_to_unit"
     DELIVERY_COMPLETE = "delivery_complete"
     ERROR_STATE = "error"
@@ -83,13 +84,12 @@ class DeliveryCoordinator(Node):
             }
         }
         self.num_elevators = 4 # TODO: Move to a configuration file
-        self.state = DeliveryState.IDLE
         self.future = None
 
         # Initialize delivery parameters
         self.current_floor = 0 # Ground floor
-        self.target_floor = None
-        self.target_unit = None
+        self.delivery_floor = None
+        self.delivery_unit = None
         self.requested_elevator_id = None
 
         # Load location coordinates
@@ -135,6 +135,11 @@ class DeliveryCoordinator(Node):
             self.get_logger().error('request_elevator service not available, initialization failed.')
             raise RuntimeError('request_elevator service not available')
         
+        self.request_floor_stop_client = self.create_client(AddTwoInts, 'add_stop')
+        if not self.request_floor_stop_client.wait_for_service(timeout_sec=5.0):
+            self.get_logger().error('add_stop service not available, initialization failed.')
+            raise RuntimeError('add_stop service not available')
+
         self.floor_subscribers = {}
         self.door_subscribers = {}
         for elevator_id in range(1, self.num_elevators + 1):
@@ -159,64 +164,70 @@ class DeliveryCoordinator(Node):
             DeliverToUnit, 'deliver_to_unit', self.delivery_request_callback
         )
 
+        self.state = DeliveryState.IDLE
+
         # Run step() every second
         self.timer = self.create_timer(1.0, self.step)
     
-    # @property
-    # def state(self):
-    #     return self._state
-
-    # @state.setter
-    # def state(self, new_state):
-    #     if self._state != new_state:
-    #         self._state = new_state
-    #         self.step()
-    
     def step(self):
-        if self.state == DeliveryState.IDLE:
-            self.get_logger().info("Currently IDLE")
+        # Track last state to detect state transitions
+        current_state = self.state
         
-        elif self.state == DeliveryState.STARTING:
-            self.get_logger().info("Starting delivery process")
-            self.handle_starting()
+        # Store whether this is the first time handling this state
+        if not hasattr(self, '_last_handled_state'):
+            self._last_handled_state = None
         
-        elif self.state == DeliveryState.NAVIGATING_TO_LOADING:
-            self.get_logger().info("Navigating to loading area")
-            self.handle_navigating_to_loading()
-        
-        elif self.state == DeliveryState.WAITING_FOR_LOADING:
-            self.get_logger().info("Waiting for loading")
-            # Check if loading is complete
-            # On completion, transition to NAVIGATING_TO_ELEVATOR state
-            # self.state = DeliveryState.NAVIGATING_TO_ELEVATOR
-        
-        elif self.state == DeliveryState.NAVIGATING_TO_ELEVATOR:
-            self.get_logger().info("Navigating to elevator")
-            self.handle_navigating_to_elevator()
-        
-        elif self.state == DeliveryState.REQUESTING_ELEVATOR:
-            self.get_logger().info("Requesting elevator")
-            self.handle_requesting_elevator()
-        
-        elif self.state == DeliveryState.WAITING_FOR_ELEVATOR:
-            self.get_logger().info("Waiting for elevator")
-            threading.Thread(target=lambda: self.handle_waiting_for_elevator(self.current_floor), daemon=True).start()
-        
-        elif self.state == DeliveryState.ENTERING_ELEVATOR:
-            self.get_logger().info("Entering elevator")
-        #     # Navigate into the elevator
-        #     # On success, transition to RIDING_ELEVATOR state
-        #     self.state = DeliveryState.RIDING_ELEVATOR
-        
-        # elif self.state == DeliveryState.RIDING_ELEVATOR:
-        #     self.get_logger().info("Riding elevator")
-        #     # Wait for elevator to reach destination floor
-        #     # On arrival, transition to EXITING_ELEVATOR state
-        #     self.state = DeliveryState.EXITING_ELEVATOR
-        
-        # elif self.state == DeliveryState.EXITING_ELEVATOR:
-        #     self.get_logger().info("Exiting elevator")
-        #     # Navigate
+        # Only process a state if it's different from the last handled state
+        if current_state != self._last_handled_state:
+            if current_state == DeliveryState.IDLE:
+                self.get_logger().info("Currently IDLE")
+            
+            elif current_state == DeliveryState.STARTING:
+                self.get_logger().info("Starting delivery process")
+                self.handle_starting()
+            
+            elif current_state == DeliveryState.NAVIGATING_TO_LOADING:
+                self.get_logger().info("Navigating to loading area")
+                self.handle_navigating_to_loading()
+            
+            elif current_state == DeliveryState.WAITING_FOR_LOADING:
+                self.get_logger().info("Waiting for loading")
+            
+            elif current_state == DeliveryState.NAVIGATING_TO_ELEVATOR:
+                self.get_logger().info("Navigating to elevator")
+                target_location = self.locations.get("ground_floor").get("lobby-elevator")
+                self.handle_navigating(target_location, DeliveryState.REQUESTING_ELEVATOR)
+    
+            elif current_state == DeliveryState.REQUESTING_ELEVATOR:
+                self.get_logger().info("Requesting elevator")
+                self.handle_requesting_elevator()
+            
+            elif current_state == DeliveryState.WAITING_FOR_ELEVATOR:
+                self.get_logger().info("Waiting for elevator")
+                threading.Thread(target=lambda: self.handle_waiting_for_elevator(self.current_floor), daemon=True).start()
+            
+            elif current_state == DeliveryState.ENTERING_ELEVATOR:
+                self.get_logger().info("Entering elevator")
+                target_location = self.locations.get("ground_floor").get("elevators").get(f"elevator_{self.requested_elevator_id}")
+                self.handle_navigating(target_location, DeliveryState.REQUESTING_FLOOR_STOP)
+            
+            elif current_state == DeliveryState.REQUESTING_FLOOR_STOP:
+                self.get_logger().info("Requesting floor stop")
+                self.handle_requesting_floor_stop()
+            
+            elif current_state == DeliveryState.WAITING_FLOOR_STOP:
+                self.get_logger().info("Waiting for floor stop")
+                threading.Thread(target=self.handle_waiting_floor_stop, daemon=True).start()
+            
+            elif current_state == DeliveryState.NAVIGATING_TO_UNIT:
+                self.get_logger().info("Navigating to unit")
+                target_location = self.locations.get("residential_floors").get("units").get(f"unit_{self.delivery_unit:02d}")
+                self.handle_navigating(target_location, DeliveryState.DELIVERY_COMPLETE)
+            elif current_state == DeliveryState.DELIVERY_COMPLETE:
+                self.get_logger().info("Delivery complete!")
+                
+            # Save the current state as the last handled state
+            self._last_handled_state = current_state
 
     def delivery_request_callback(self, request, response):
         if self.state == DeliveryState.IDLE:
@@ -235,12 +246,6 @@ class DeliveryCoordinator(Node):
             self.delivery_unit = unit
 
             self.state = DeliveryState.STARTING
-            
-
-            # # Set single elevator request state to EN_ROUTE
-            # def start():
-            #     self.state = DeliveryState.STARTING
-            # threading.Thread(target=start, daemon=True).start()
 
             response.success = True
             response.target_floor = self.delivery_floor
@@ -282,16 +287,16 @@ class DeliveryCoordinator(Node):
         
         self.state = DeliveryState.WAITING_FOR_LOADING
 
-    def handle_navigating_to_elevator(self):
-        # Navigate to elevator
-        result = navigate_to_goal(self.locations.get("ground_floor").get("lobby-elevator"))
+    def handle_navigating(self, target_location, on_success_state):
+        # Navigate to target location
+        result = navigate_to_goal(target_location)
 
         if not result:
-            self.get_logger().error("Failed to navigate to lobby elevator.")
+            self.get_logger().error(f"Failed to navigate to {target_location}.")
             self.state = DeliveryState.ERROR_STATE
             return
 
-        self.state = DeliveryState.REQUESTING_ELEVATOR
+        self.state = on_success_state
     
     def handle_requesting_elevator(self):
         request = AddTwoInts.Request()
@@ -324,52 +329,61 @@ class DeliveryCoordinator(Node):
             self.get_logger().error(f"Delivery state is not {self.state}, and is expected to be {DeliveryState.WAITING_FOR_ELEVATOR}.")
             self.state = DeliveryState.ERROR_STATE
 
+    def handle_requesting_floor_stop(self):
+        request = AddTwoInts.Request()
+        request.a = self.delivery_floor
+
+        future = self.request_floor_stop_client.call_async(request)
+        future.add_done_callback(self.handle_requesting_floor_stop_callback)
+    
+    def handle_requesting_floor_stop_callback(self, future):
+        result = future.result()
+        if result.sum != -1:
+            self.get_logger().info("Floor stop request successful, waiting for elevator to arrive")
+            self.state = DeliveryState.WAITING_FLOOR_STOP
+        else:
+            self.get_logger().warn(f"Floor stop request failed with response: {result}")
+            self.state = DeliveryState.ERROR_STATE
+
+    def handle_waiting_floor_stop(self):
+        if self.state == DeliveryState.WAITING_FLOOR_STOP:
+            while self.elevators[self.requested_elevator_id].current_floor != self.delivery_floor or not self.elevators[self.requested_elevator_id].doors_open:
+                self.get_logger().info(f"Waiting for elevator {self.requested_elevator_id} to arrive at floor {self.delivery_floor} with doors open...")
+                time.sleep(1.0)
+
+            self.get_logger().info(f"Elevator {self.requested_elevator_id} has arrived at floor {self.delivery_floor} with doors open.")
+        
+            # NOTE:
+            # Switching to residential floor map before getting out of elevator
+            # Rational: Robot should not navigate without correct map context
+            # Risk: If loading of map takes too long or fails, robot may be stuck in elevator
+            estimated_location = self.locations.get("residential_floors").get("elevators").get(f"elevator_{self.requested_elevator_id}")
+            result = setup_map("residential_floor", estimated_location)
+
+            if not result:
+                self.get_logger().error("Failed to setup residential floor map")
+                self.state = DeliveryState.ERROR_STATE
+                return
+            
+            self.state = DeliveryState.NAVIGATING_TO_UNIT
+
+
+        else:
+            self.get_logger().error(f"Delivery state is not {self.state}, and is expected to be {DeliveryState.WAITING_FLOOR_STOP}.")
+            self.state = DeliveryState.ERROR_STATE
+
     # ------------------ Utility functions ------------------
     def floor_callback(self, msg: Int32, elevator_id: int):
         """Update elevator floor information"""
         with self.lock:
             if elevator_id in self.elevators:
                 self.elevators[elevator_id].current_floor = msg.data
-                # if elevator_id == self.requested_elevator_id:
-                #     self.get_logger().info(f"Elevator {elevator_id} is now at floor {msg.data}")
     
     def door_callback(self, msg: Bool, elevator_id: int):
         """Update elevator door state"""
         with self.lock:
             if elevator_id in self.elevators:
                 self.elevators[elevator_id].doors_open = msg.data
-
-    # def send_navigate_to_goal_request(self, goal: Dict[str, float]):
-    #     # Create a goal pose
-    #     goal_pose = PoseStamped()
-    #     goal_pose.header.frame_id = "map"
-    #     goal_pose.header.stamp = self.get_clock().now().to_msg()
-    #     goal_pose.pose.position.x = goal.get("x")
-    #     goal_pose.pose.position.y = goal.get("y")
-
-    #     # Convert yaw to quaternion
-    #     goal_pose.pose.orientation.z = (goal.get("yaw") / 2.0) ** 0.5
-    #     goal_pose.pose.orientation.w = (1.0 - (goal.get("yaw") / 2.0) ** 2) ** 0.5
-
-    #     # Send goal
-    #     goal_msg = NavigateToPose.Goal()
-    #     goal_msg.pose = goal_pose
-
-    #     # NOTE:
-    #     # 1. Send goal
-    #     # 2. Wait for accepted response
-    #     future = self._action_client.send_goal_async(goal_msg)
-    #     return future
-
-    #     goal_handle = send_goal_future.result()
-    #     if not goal_handle.accepted:
-    #         self.get_logger().warn("Goal rejected")
-    #         return False
-        
-    #     self.get_logger().info("Goal accepted, waiting for result...")
-    #     result_future = goal_handle.get_result_async()
-    #     result_future.add_done_callback(self.handle_navigating_to_loading_callback)
-
 
     def _load_location_config(self):
         """Load predefined location coordinates from YAML config"""
@@ -385,13 +399,9 @@ class DeliveryCoordinator(Node):
             with open(config_path, 'r') as f:
                 self.locations = yaml.safe_load(f)
             
-            self.get_logger().info(f"Loaded location coordinates from {config_path}")
-            
         except Exception as e:
             self.get_logger().error(f"Failed to load location config: {e}")
             self.locations = {}
-
-        self.get_logger().info(f"Loaded location coordinates: {yaml.dump(self.locations, default_flow_style=False)}")
 
     # TODO: move to utils
     def _parse_unit_id(self, unit_id: str) -> Tuple[Optional[int], Optional[int]]:

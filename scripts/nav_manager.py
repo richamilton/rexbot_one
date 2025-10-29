@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
 from enum import Enum
+import math
 
 class ActionResult(Enum):
     NONE = -1
@@ -33,9 +34,9 @@ class NavManager(Node):
         goal_pose.pose.position.x = x
         goal_pose.pose.position.y = y
 
-        # Convert yaw to quaternion
-        goal_pose.pose.orientation.z = (yaw / 2.0) ** 0.5
-        goal_pose.pose.orientation.w = (1.0 - (yaw / 2.0) ** 2) ** 0.5
+        # Convert yaw to quaternion using proper formula
+        goal_pose.pose.orientation.z = math.sin(yaw / 2.0)
+        goal_pose.pose.orientation.w = math.cos(yaw / 2.0)
 
         # Send goal
         goal_msg = NavigateToPose.Goal()
@@ -75,9 +76,9 @@ def navigate_to_goal(goal: dict) -> dict:
         y = goal.get("y")
         yaw = goal.get("yaw")
         success = node.handle_goal_request(x, y, yaw)
-        return {"success": success}
     finally:
         node.destroy_node()
+    return {"success": success}
 
 if __name__ == "__main__":
     rclpy.init()

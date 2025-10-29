@@ -35,12 +35,12 @@ class MapManager(Node):
         self.map_configs = {
             'ground_floor': {
                 'map_file': 'ground_floor_map_save.yaml',
-                'frame_id': 'ground_floor_map',
+                'frame_id': 'map',
                 'description': 'Lobby, reception, elevators, loading area'
             },
             'residential_floor': {
                 'map_file': 'residential_floor_save.yaml', 
-                'frame_id': 'residential_floor_map',
+                'frame_id': 'map',
                 'description': 'Standard residential floor layout (floors 1-4)'
             }
         }
@@ -158,9 +158,12 @@ class MapManager(Node):
             pose_msg.pose.pose.position.z = 0.0
             
             # Set orientation (from yaw)
+            import math
             yaw = float(initial_pose.get('yaw', 0.0))
-            pose_msg.pose.pose.orientation.z = (yaw / 2.0) ** 0.5
-            pose_msg.pose.pose.orientation.w = (1.0 - (yaw / 2.0) ** 2) ** 0.5
+            pose_msg.pose.pose.orientation.x = 0.0
+            pose_msg.pose.pose.orientation.y = 0.0
+            pose_msg.pose.pose.orientation.z = math.sin(yaw / 2.0)
+            pose_msg.pose.pose.orientation.w = math.cos(yaw / 2.0)
             
             # Set covariance (diagonal matrix with reasonable uncertainties)
             covariance = [0.0] * 36  # 6x6 matrix flattened
