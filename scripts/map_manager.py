@@ -8,14 +8,11 @@ as the robot moves between floors during delivery operations.
 
 import os
 from typing import Dict, Optional
-from pathlib import Path
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Int32
 from nav2_msgs.srv import LoadMap, ClearEntireCostmap
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from std_srvs.srv import Empty
 
 class MapManager(Node):
     """
@@ -205,7 +202,7 @@ class MapManager(Node):
 
 
 def setup_map(map_name: str, initial_pose: Dict[str, float]):
-    """Convenience function to call the clear costmap service once and return the response."""
+    """Convenience function to set up a map: loads the specified map, clears costmaps, and sets the initial pose."""
     client = MapManager()
     response = client.setup_map(map_name, initial_pose)
     client.get_logger().info(f'Result of setup map: {response}')

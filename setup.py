@@ -1,6 +1,5 @@
-import os
 from glob import glob
-from turtle import setup
+from setuptools import setup
 
 package_name = 'rexbot_one'
 

@@ -82,5 +82,5 @@ def navigate_to_goal(goal: dict) -> dict:
 
 if __name__ == "__main__":
     rclpy.init()
-    navigate_to_goal(-1.0, 0.0, 0.0)
+    navigate_to_goal({'x': -1.0, 'y': 0.0, 'yaw': 0.0})
     rclpy.shutdown()

@@ -238,7 +238,7 @@ class DeliveryCoordinator(Node):
 
             if floor is None or unit is None:
                 response.success = False
-                response.error = f"Invalid unit ID: {request.unit_id}"
+                response.error_message = f"Invalid unit ID: {request.unit_id}"
                 return response
 
             self.delivery_id = str(uuid.uuid4())[:8]
@@ -258,7 +258,7 @@ class DeliveryCoordinator(Node):
         else:
             self.get_logger().warn("Failed to accept new delivery request, already busy!")
             response.success = False
-            response.error = f"Delivery coordinator busy with another request."
+            response.error_message = f"Delivery coordinator busy with another request."
             return response
 
     def handle_starting(self):
@@ -392,7 +392,7 @@ class DeliveryCoordinator(Node):
                 # Try to get package path (for installed package)
                 package_share = get_package_share_directory('rexbot_one')
                 config_path = os.path.join(package_share, 'config', 'location_coordinates.yaml')
-            except:
+            except Exception:
                 # Fallback to development workspace path
                 config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'location_coordinates.yaml')
             
