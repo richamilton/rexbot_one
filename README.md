@@ -134,6 +134,11 @@ ros2 topic echo /clicked_point
 - 0.785 -> Facing North
 - 1.57 -> Facing West
 
+#### Requesting Delivery
+```bash
+ros2 service call /deliver_to_unit rexbot_one/srv/DeliverToUnit "{unit_id: '<unit>'}"
+```
+
 ## References
 
 - Design robot
