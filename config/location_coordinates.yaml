@@ -116,7 +116,7 @@ residential_floors:
     unit_03:
       x: -3.10049
       y: -0.110035
-      yaw: 32.85554
+      yaw: 3.14
       description: "Unit 03 door"
       
     # South wing units (negative Y)  
